@@ -1,0 +1,229 @@
+:root {
+  --bg: #2a2a35;
+  --panel: #c0c0c0;
+  --panel-light: #ffffff;
+  --panel-dark: #808080;
+  --cell-bg: #c8c8ce;
+  --cell-revealed: #a5a5ad;
+  --text: #d4d4dc;
+  --heading: #f0f0f5;
+  --accent: #4a9eff;
+
+  font-family: 'Segoe UI', system-ui, Roboto, sans-serif;
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at top, #353545 0%, var(--bg) 70%);
+  user-select: none;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.app h1 {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--heading);
+}
+
+.hint {
+  font-size: 14px;
+  color: var(--text);
+  opacity: 0.6;
+  margin: 0;
+}
+
+/* ---- Minesweeper ---- */
+
+.minesweeper-container {
+  background-color: var(--panel);
+  border: 4px outset var(--panel-light);
+  padding: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--panel);
+  border: 3px inset var(--panel-light);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.counter {
+  background-color: #000;
+  color: #ff2222;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border: 2px inset var(--panel-dark);
+  letter-spacing: 2px;
+  min-width: 56px;
+  text-align: center;
+  border-radius: 2px;
+  text-shadow: 0 0 6px rgba(255, 34, 34, 0.5);
+}
+
+.reset-btn {
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  background-color: var(--panel);
+  border: 3px outset var(--panel-light);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-radius: 2px;
+  transition: transform 0.1s;
+}
+
+.reset-btn:hover {
+  filter: brightness(1.05);
+}
+
+.reset-btn:active {
+  border: 3px inset var(--panel-light);
+}
+
+.board-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.board {
+  display: grid;
+  gap: 1px;
+  background-color: var(--panel-dark);
+  border: 3px inset var(--panel-light);
+  border-radius: 2px;
+}
+
+.reset-corner-btn {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  background-color: var(--accent);
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s, background-color 0.15s;
+  z-index: 1;
+}
+
+.reset-corner-btn:hover {
+  transform: scale(1.1);
+  background-color: #6ab5ff;
+}
+
+.reset-corner-btn:active {
+  transform: scale(0.95);
+}
+
+.cell {
+  width: 26px;
+  height: 26px;
+  background-color: var(--cell-bg);
+  border: 2px outset var(--panel-light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.08s;
+  border-radius: 1px;
+}
+
+.cell:hover:not(.revealed) {
+  background-color: #b0b0b8;
+}
+
+.cell.revealed {
+  border: 1px solid var(--panel-dark);
+  background-color: var(--cell-revealed);
+  cursor: default;
+}
+
+.cell.revealed:hover {
+  background-color: var(--cell-revealed);
+}
+
+.cell.mine {
+  background-color: #ff3333;
+}
+
+/* Number colors */
+.cell[data-value='1'] { color: #0000ff; }
+.cell[data-value='2'] { color: #008100; }
+.cell[data-value='3'] { color: #ff0000; }
+.cell[data-value='4'] { color: #000081; }
+.cell[data-value='5'] { color: #810000; }
+.cell[data-value='6'] { color: #008181; }
+.cell[data-value='7'] { color: #000000; }
+.cell[data-value='8'] { color: #808080; }
+
+@media (max-width: 768px) {
+  .cell {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    border-width: 2px;
+  }
+  .app h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cell {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+    border-width: 1px;
+  }
+}
