@@ -8,8 +8,8 @@
     neighborMines: number;
   };
 
-  const ROWS = 24;
-  const COLS = 20;
+  const ROWS = 20;
+  const COLS = 24;
   const MINE_COUNT = 99;
 
   let board: Cell[][] = $state([]);
@@ -196,39 +196,57 @@
   initGame();
 </script>
 
-<div class="minesweeper-container">
+<div class="minesweeper-container" class:game-won={gameWon} class:game-lost={gameOver}>
   <header class="game-header">
     <div class="counter">{String(remainingMines).padStart(3, '0')}</div>
     <button class="reset-btn" onclick={initGame}>{resetEmoji}</button>
     <div class="counter">{String(timer).padStart(3, '0')}</div>
   </header>
 
-    <div class="board-wrapper">
-      <div class="board" style="grid-template-columns: repeat({COLS}, 1fr); grid-template-rows: repeat({ROWS}, 1fr)" aria-label="Spielfeld">
-        {#each board as row}
-          {#each row as cell}
-            <div
-              class={cellClass(cell)}
-              data-value={cell.revealed && cell.neighborMines > 0 ? cell.neighborMines : ''}
-              role="button"
-              tabindex="0"
-              onclick={() => handleCellClick(cell.row, cell.col)}
-              oncontextmenu={(e) => handleCellRightClick(e, cell.row, cell.col)}
-              onkeydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleCellClick(cell.row, cell.col);
-                } else if (e.key === 'f' || e.key === 'F') {
-                  e.preventDefault();
-                  handleCellRightClick(e, cell.row, cell.col);
-                }
-              }}
-            >
-              {cellLabel(cell)}
-            </div>
-          {/each}
+  <div class="board-wrapper">
+    <div class="board" style="grid-template-columns: repeat({COLS}, 1fr); grid-template-rows: repeat({ROWS}, 1fr)" aria-label="Spielfeld" class:shake={gameOver}>
+      {#each board as row}
+        {#each row as cell}
+          <div
+            class={cellClass(cell)}
+            data-value={cell.revealed && cell.neighborMines > 0 ? cell.neighborMines : ''}
+            role="button"
+            tabindex="0"
+            onclick={() => handleCellClick(cell.row, cell.col)}
+            oncontextmenu={(e) => handleCellRightClick(e, cell.row, cell.col)}
+            onkeydown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleCellClick(cell.row, cell.col);
+              } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                handleCellRightClick(e, cell.row, cell.col);
+              }
+            }}
+          >
+            {cellLabel(cell)}
+          </div>
         {/each}
-      </div>
-      <button class="reset-corner-btn" onclick={initGame} title="Neues Spiel">↻</button>
+      {/each}
     </div>
+
+    {#if gameWon}
+      <div class="overlay overlay-win">
+        <div class="overlay-content win-content">
+          <div class="overlay-icon">😎</div>
+          <div class="overlay-title">Gewonnen!</div>
+          <div class="overlay-subtitle">Zeit: {timer}s</div>
+          <button class="overlay-btn" onclick={initGame}>Nochmal spielen</button>
+        </div>
+      </div>
+    {:else if gameOver}
+      <div class="overlay overlay-lose">
+        <div class="overlay-content lose-content">
+          <div class="overlay-icon">💥</div>
+          <div class="overlay-title">Verloren!</div>
+          <button class="overlay-btn" onclick={initGame}>Nochmal versuchen</button>
+        </div>
+      </div>
+    {/if}
   </div>
+</div>
