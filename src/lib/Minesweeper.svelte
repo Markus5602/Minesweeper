@@ -141,7 +141,7 @@
     }
   }
 
-  function handleCellRightClick(e: MouseEvent, r: number, c: number) {
+  function handleCellRightClick(e: Event, r: number, c: number) {
     e.preventDefault();
     if (gameOver || gameWon || firstClick) return;
     const cell = board[r][c];
