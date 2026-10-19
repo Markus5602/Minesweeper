@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Scoreboard from './Scoreboard.svelte';
+  import { supabase } from './supabaseClient';
+
   type Cell = {
     row: number;
     col: number;
@@ -21,6 +24,17 @@
   let revealedCount = $state(0);
   let timerInterval: ReturnType<typeof setInterval> | null = null;
 
+  // Score submission state
+  let playerName = $state('');
+  let scoreSaved = $state(false);
+  let scoreSaving = $state(false);
+  let saveError = $state(false);
+
+  // Refresh signal for the scoreboard
+  let refreshSignal = $state(0);
+
+  const { onscoresaved } = $props();
+
   const resetEmoji = $derived(gameOver ? '😵' : gameWon ? '😎' : '😊');
   const remainingMines = $derived(MINE_COUNT - flagsCount);
 
@@ -34,21 +48,10 @@
     timer = 0;
     flagsCount = 0;
     revealedCount = 0;
-
-    for (let r = 0; r < ROWS; r++) {
-      const row: Cell[] = [];
-      for (let c = 0; c < COLS; c++) {
-        row.push({
-          row: r,
-          col: c,
-          mine: false,
-          revealed: false,
-          flagged: false,
-          neighborMines: 0,
-        });
-      }
-      board.push(row);
-    }
+    playerName = '';
+    scoreSaved = false;
+    scoreSaving = false;
+    saveError = false;
   }
 
   function startTimer() {
@@ -178,6 +181,24 @@
     }
   }
 
+  async function submitScore() {
+    const name = playerName.trim();
+    if (!name || scoreSaving || scoreSaved) return;
+    scoreSaving = true;
+    saveError = false;
+    const { error } = await supabase
+      .from('scores')
+      .insert({ player_name: name, time_seconds: timer });
+    scoreSaving = false;
+    if (error) {
+      saveError = true;
+    } else {
+      scoreSaved = true;
+      refreshSignal++;
+      onscoresaved?.();
+    }
+  }
+
   function cellLabel(cell: Cell): string {
     if (!cell.revealed && cell.flagged) return '🚩';
     if (!cell.revealed) return '';
@@ -236,7 +257,28 @@
           <div class="overlay-icon">😎</div>
           <div class="overlay-title">Gewonnen!</div>
           <div class="overlay-subtitle">Zeit: {timer}s</div>
-          <button class="overlay-btn" onclick={initGame}>Nochmal spielen</button>
+
+          {#if !scoreSaved}
+            <div class="score-form">
+              <input
+                class="score-input"
+                type="text"
+                placeholder="Dein Name"
+                maxlength="20"
+                bind:value={playerName}
+                onkeydown={(e) => { if (e.key === 'Enter') submitScore(); }}
+              />
+              <button class="overlay-btn" onclick={submitScore} disabled={scoreSaving || !playerName.trim()}>
+                {scoreSaving ? 'Speichert…' : 'In Bestenliste eintragen'}
+              </button>
+            </div>
+            {#if saveError}
+              <div class="score-error">Fehler beim Speichern. Nochmal versuchen.</div>
+            {/if}
+          {:else}
+            <div class="score-saved">Zeit gespeichert!</div>
+            <button class="overlay-btn" onclick={initGame}>Nochmal spielen</button>
+          {/if}
         </div>
       </div>
     {:else if gameOver}
