@@ -8,9 +8,20 @@
     neighborMines: number;
   };
 
+  type GameState = {
+    board: Cell[][];
+    gameOver: boolean;
+    gameWon: boolean;
+    firstClick: boolean;
+    timer: number;
+    flagsCount: number;
+    revealedCount: number;
+  };
+
   const ROWS = 20;
   const COLS = 24;
   const MINE_COUNT = 99;
+  const STORAGE_KEY = 'minesweeper-state';
 
   let board: Cell[][] = $state([]);
   let gameOver = $state(false);
@@ -24,17 +35,8 @@
   const resetEmoji = $derived(gameOver ? '😵' : gameWon ? '😎' : '😊');
   const remainingMines = $derived(MINE_COUNT - flagsCount);
 
-  function initGame() {
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = null;
-    board = [];
-    gameOver = false;
-    gameWon = false;
-    firstClick = true;
-    timer = 0;
-    flagsCount = 0;
-    revealedCount = 0;
-
+  function buildEmptyBoard(): Cell[][] {
+    const b: Cell[][] = [];
     for (let r = 0; r < ROWS; r++) {
       const row: Cell[] = [];
       for (let c = 0; c < COLS; c++) {
@@ -47,8 +49,22 @@
           neighborMines: 0,
         });
       }
-      board.push(row);
+      b.push(row);
     }
+    return b;
+  }
+
+  function initGame() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    board = buildEmptyBoard();
+    gameOver = false;
+    gameWon = false;
+    firstClick = true;
+    timer = 0;
+    flagsCount = 0;
+    revealedCount = 0;
+    saveState();
   }
 
   function startTimer() {
@@ -109,11 +125,13 @@
       cell.revealed = true;
       gameOver = true;
       if (timerInterval) clearInterval(timerInterval);
+      saveState();
       return;
     }
 
     revealCell(r, c);
     checkWinCondition();
+    saveState();
   }
 
   function revealCell(r: number, c: number) {
@@ -151,6 +169,7 @@
       cell.flagged = false;
       flagsCount--;
     }
+    saveState();
   }
 
   function revealAllMines() {
@@ -193,7 +212,56 @@
     return cls;
   }
 
-  initGame();
+  function saveState() {
+    const state: GameState = {
+      board,
+      gameOver,
+      gameWon,
+      firstClick,
+      timer,
+      flagsCount,
+      revealedCount,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // ignore quota / serialization errors
+    }
+  }
+
+  function loadState(): boolean {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const state = JSON.parse(raw) as GameState;
+      if (
+        !state.board ||
+        state.board.length !== ROWS ||
+        state.board[0].length !== COLS
+      ) {
+        return false;
+      }
+      board = state.board;
+      gameOver = state.gameOver;
+      gameWon = state.gameWon;
+      firstClick = state.firstClick;
+      timer = state.timer;
+      flagsCount = state.flagsCount;
+      revealedCount = state.revealedCount;
+      // Resume the timer only for an in-progress game
+      if (!firstClick && !gameOver && !gameWon) {
+        startTimer();
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // On mount: restore a saved game, otherwise start fresh
+  if (!loadState()) {
+    initGame();
+  }
 </script>
 
 <div class="minesweeper-container" class:game-won={gameWon} class:game-lost={gameOver}>
