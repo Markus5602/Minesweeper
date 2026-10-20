@@ -34,6 +34,21 @@
     timer = 0;
     flagsCount = 0;
     revealedCount = 0;
+
+    for (let r = 0; r < ROWS; r++) {
+      const row: Cell[] = [];
+      for (let c = 0; c < COLS; c++) {
+        row.push({
+          row: r,
+          col: c,
+          mine: false,
+          revealed: false,
+          flagged: false,
+          neighborMines: 0,
+        });
+      }
+      board.push(row);
+    }
   }
 
   function startTimer() {
